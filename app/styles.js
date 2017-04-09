@@ -52,10 +52,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
 
-    footerBackWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 0.8},
-    footerBackWrapperDisabled: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 0.4 },
-    footerForwardWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 0.8},
-    footerForwardWrapperDisabled: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 0.4 },
+    footerBackWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 1.0},
+    footerBackWrapperDisabled: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 0.1 },
+    footerForwardWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 1.0},
+    footerForwardWrapperDisabled: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 0.1 },
 
     footerActionsWrapper: {
         flex: 2,
@@ -69,7 +69,18 @@ const styles = StyleSheet.create({
     }),
     footerActionPlayback: Object.assign({}, baseActionLabelStyle, {paddingTop: 10, fontSize: 20, width: 88}),
 
-    footerBack: Object.assign({}, baseActionLabelStyle),
-    footerForward: Object.assign({}, baseActionLabelStyle)
+    footerBack: Object.assign({}, baseActionLabelStyle, {fontSize: 26, paddingTop: 5, paddingBottom: 6}),
+    footerForward: Object.assign({}, baseActionLabelStyle, {fontSize: 26, paddingTop: 5, paddingBottom: 6}),
+
+    /** Modal */
+    modal: {
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    modal4: {
+        height: 300
+    }
+
+
 });
 export default styles;
