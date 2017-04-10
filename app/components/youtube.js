@@ -7,6 +7,7 @@ import {
     StyleSheet,
     TouchableHighlight,
     TouchableNativeFeedback,
+    Image,
     Text,
     View,
     WebView
@@ -27,7 +28,7 @@ import Ripple from 'react-native-material-ripple';
  */
 import styles from '../styles.js';
 
-const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+const PLAYBACK_SPEEDS = [0.5, 1, 1.25, 1.5, 2, 2.5];
 
 export default class ViewYotube extends Component {
     constructor(props) {
@@ -41,9 +42,8 @@ export default class ViewYotube extends Component {
         status: '',
         backButtonEnabled: false,
         forwardButtonEnabled: false,
-        isOnVideoPage: false,
-        loading: true,
-        scalesPageToFit: true
+        isVideoVisible: false,
+        loading: true
     }
 
     // TODO: Figure out red screen issue
@@ -54,7 +54,7 @@ export default class ViewYotube extends Component {
     }
 
     postMessage = (message) => {
-        if (this.webview) { this.webview.postMessage(message, '*'); }
+        if (this.webview && this.state.webviewLoaded) { this.webview.postMessage(message, '*'); }
     }
 
     /**
@@ -62,6 +62,7 @@ export default class ViewYotube extends Component {
      * webview video speed
      */
     cycleThroughPlaybackSpeed = () => {
+
         let nextPlaybackSpeed = this.state.playbackSpeedIndex + 1;
         if (nextPlaybackSpeed >= PLAYBACK_SPEEDS.length) { nextPlaybackSpeed = 0; }
 
@@ -75,12 +76,11 @@ export default class ViewYotube extends Component {
         });
     }
 
-    historyBack = () => { this.postMessage(JSON.stringify({historyBack: true})); }
-    historyForward = () => { this.postMessage(JSON.stringify({historyForward: true})); }
+    historyBack = () => { this.webview.goBack(); }
+    historyForward = () => { this.webview.goForward(); }
     
     /** Skip forward / backwards through the video */
     skip = (skipTime) => { 
-        this.modal.open();
         this.postMessage(JSON.stringify({skip: skipTime})); 
     }
 
@@ -96,8 +96,8 @@ export default class ViewYotube extends Component {
             <View style={styles.container}>
                 <WebView
                     ref={ (webview) => { return this.webview = webview; } }
-                    automaticallyAdjustContentInsets={true}
                     style={styles.youtube}
+                    automaticallyAdjustContentInsets={true}
                     source={{
                         uri: 'https://www.youtube.com',
                         headers: {
@@ -112,6 +112,7 @@ export default class ViewYotube extends Component {
                     forwardButtonEnabled={true}
                     scalesPageToFit={true}
                     onNavigationStateChange = {(navState) => {
+                        console.log('Nav changed', navState);
                         this.setState({
                             backButtonEnabled: navState.canGoBack,
                             forwardButtonEnabled: navState.canGoForward,
@@ -121,9 +122,9 @@ export default class ViewYotube extends Component {
                             scalesPageToFit: true
                         });
                     }}
-                    onMessage={this.onMessage}
                     onError={(err) => { console.log("ERROR", err); }}
                     onLoad={() => { console.log("Load..."); }}
+                    
                     onLoadEnd={() => {
                         console.log("Load End", this.webview);
                         this.webview.injectJavaScript(
@@ -132,19 +133,9 @@ export default class ViewYotube extends Component {
                     }}
                 />
 
-
-            <Modal style={[styles.modal, styles.modal4]} 
-                    position={"bottom"} 
-                    ref={ (modal) => { return this.modal = modal; } }>
-                    <Text style={styles.text}>Modal on bottom with backdrop</Text>
-                </Modal>
-
-
-
                 <View style={styles.footer}>
-                    <View style={this.state.backButtonEnabled ? styles.footerBackWrapper : styles.footerBackWrapperDisabled }>
+                    <View style={styles.footerBackWrapper}>
                         <Ripple 
-                            disabled={!this.state.backButtonEnabled}
                             rippleCentered={true}
                             style={styles.footerRipple} onPress={this.historyBack}>
                             <Text style={styles.footerBack}>
@@ -157,12 +148,14 @@ export default class ViewYotube extends Component {
                             rippleCentered={true}
                             onPress={ () => { this.skip(-30); }}>
                             <Text style={styles.footerAction}>
-                                ↩︎ 30
+                                ↩︎ 30s
                             </Text>
                         </Ripple>
                         <Ripple 
                             rippleCentered={true}
-                            style={styles.footerRipple} onPress={this.cycleThroughPlaybackSpeed} >
+                            onPress={this.cycleThroughPlaybackSpeed} 
+                            style={styles.footerRipple} 
+                        >
                             <Text style={styles.footerActionPlayback}>
                                 {this.getCurrentPlaybackSpeedText()}
                             </Text>
@@ -171,14 +164,13 @@ export default class ViewYotube extends Component {
                             rippleCentered={true}
                             style={styles.footerRipple} onPress={() => { this.skip(30); }}>
                             <Text style={styles.footerAction}>
-                                30↪︎ 
+                                30s↪︎ 
                             </Text>
                         </Ripple>
                     </View>
-                    <View style={this.state.forwardButtonEnabled ? styles.footerForwardWrapper : styles.footerForwardWrapperDisabled}>
+                    <View style={styles.footerForwardWrapper}>
                         <Ripple 
                             rippleCentered={true}
-                            disabled={!this.state.forwardButtonEnabled}
                             style={styles.footerRipple} onPress={this.historyForward}>
                             <Text style={styles.footerForward}>
                                 →

@@ -22,25 +22,17 @@ const baseActionLabelStyle = {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        flexDirection: 'column',
+        backgroundColor: '#F5FCFF',
         alignSelf: 'stretch',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-        backgroundColor: '#F5FCFF'
+        justifyContent: 'center'
     },
     youtube: {
-        marginTop: 24,
-        flex: 1,
-        width: '100%',
-        alignSelf: 'stretch', 
-        justifyContent: 'center', 
-        alignItems: 'center'
+        marginTop: 24
     },
 
     footer: {
         height: 50,
         backgroundColor: '#dd2222',
-        alignSelf: 'stretch', 
         justifyContent: 'center', 
         flexDirection: 'row',
         alignItems: 'center'
@@ -52,10 +44,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
 
-    footerBackWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 1.0},
-    footerBackWrapperDisabled: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 0.1 },
-    footerForwardWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 1.0},
-    footerForwardWrapperDisabled: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 0.1 },
+    footerBackWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 0.8},
+        footerBackWrapperDisabled: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 0.1 },
+    footerForwardWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 0.8},
+        footerForwardWrapperDisabled: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 0.1 },
 
     footerActionsWrapper: {
         flex: 2,
@@ -67,6 +59,13 @@ const styles = StyleSheet.create({
         paddingBottom: 6, 
         fontFamily: FONT_FAMILIES.label
     }),
+    footerActionDisabled: Object.assign({}, baseActionLabelStyle, {
+        paddingTop: 14, 
+        paddingBottom: 6, 
+        fontFamily: FONT_FAMILIES.label,
+        opacity: 0.1
+    }),
+
     footerActionPlayback: Object.assign({}, baseActionLabelStyle, {paddingTop: 10, fontSize: 20, width: 88}),
 
     footerBack: Object.assign({}, baseActionLabelStyle, {fontSize: 26, paddingTop: 5, paddingBottom: 6}),
@@ -75,12 +74,9 @@ const styles = StyleSheet.create({
     /** Modal */
     modal: {
         justifyContent: 'center',
-        alignItems: 'center'
-    },
-    modal4: {
+        alignItems: 'center',
         height: 300
     }
-
 
 });
 export default styles;

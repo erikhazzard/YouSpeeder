@@ -7,12 +7,19 @@ export default function youtubeClientSpeederCode () {
     window.__SPEEDER = {rate: 2};
 
     /**
-     * Modify postMessage to avoid bug in react native (see https://github.com/facebook/react-native/issues/10865 )
-     */
+     * Modify postMessage to avoid bug in react native. See 
+     *  * https://github.com/facebook/react-native/issues/10865
+     *  * https://github.com/facebook/react-native/pull/10941
+     *  * https://github.com/facebook/react-native/issues/1086:
+     *
+     *  NOTE: Have tried setting onMessage in native view after page is
+     *  loaded but that still does not fix it
     var originalPostMessage = window.postMessage;
     var patchedPostMessage = function(message, targetOrigin, transfer) { originalPostMessage(message, targetOrigin, transfer); };
     patchedPostMessage.toString = function() { return String(Object.hasOwnProperty).replace('hasOwnProperty', 'postMessage'); };
     window.postMessage = patchedPostMessage;
+     */
+
 
     /** Log window 
      * Viewing console.log is more tricky in the embedded webview with react
@@ -29,7 +36,7 @@ export default function youtubeClientSpeederCode () {
     $log.style.border = '1px solid #cdcdcd';
     $log.style.overflow = 'auto';
     $log.style.opacity = 0.7; 
-    // $log.style.display = 'none'; // comment this out to show log
+    $log.style.display = 'none'; // comment this out to show log
     document.body.appendChild($log);
     log('Log initialized!');
 
@@ -45,35 +52,24 @@ export default function youtubeClientSpeederCode () {
         $log.scrollTop = 99999999999;
     };
 
-    /** Main video loading / playback setting config */
-    /** TODO: Remove videos after they haven't been played in a while */
-    var videosById = {};
     /**
      * Process each video and set its playback speed
      */
+    var $video = document.querySelector('#player video');
+
+    /**
+     * Prepares the video element to set current playback rate
+     */
+    function playListener () { this.playbackRate = window.__SPEEDER.rate; }
     function loadVideo () {
-        var $videos = document.getElementsByTagName("video");
-        log("Load Video Called | videos:", $videos.length);
-
-        for (var i = 0; i < $videos.length; i++) {
-            /** check if it's already been set */
-            if ($videos[i].dataset.videoId) { continue; }
-
-            log.log('Found new video element...');
-            $videos[i].dataset.videoId = 'video-' + Date.now() + (Math.random() * 10000000 | 0);
-
-            (function (curIndex) {
-                $videos[curIndex].playbackRate = window.__SPEEDER.rate;
-                log("-- adding playback speed: ", curIndex, window.__SPEEDER.rate);
-
-                $videos[curIndex].removeEventListener("play");
-                $videos[curIndex].addEventListener("play", function() { 
-                    log("--> canplay event | added playback speed: ", curIndex);
-                    $videos[curIndex].playbackRate = window.__SPEEDER.rate;
-                }, true);
-            })(i);
-        }
+        log('Loading video');
+        $video = document.querySelector('#player video');
+        $video.playbackRate = window.__SPEEDER.rate;
+        $video.removeEventListener("play", playListener);
+        $video.addEventListener("play", playListener, true);
     } 
+    /** Load video */
+    setTimeout(function () { requestAnimationFrame(function () { loadVideo(); }); }, 1400);
 
     /**
      * Changes all video playback speeds
@@ -81,12 +77,7 @@ export default function youtubeClientSpeederCode () {
      */
     function changePlaybackSpeed(speed) {
         window.__SPEEDER.rate = +speed; // ensure it's always a number
-
-        /** TODO: Could cache all video elements instead of doing it here manually */
-        var $videos = document.getElementsByTagName("video");
-        for (var i = 0; i < $videos.length; i++) {
-            $videos[i].playbackRate = window.__SPEEDER.rate;
-        }
+        loadVideo();
     }
 
     /**
@@ -96,76 +87,39 @@ export default function youtubeClientSpeederCode () {
     function skip (amount) {
         /** TODO: Could cache all video elements instead of doing it here manually */
         log('Skipping time: ' + amount);
-
-        var $videos = document.getElementsByTagName("video");
-        for (var i = 0; i < $videos.length; i++) {
-            $videos[i].currentTime += amount;
-        }
+        $video.currentTime += amount;
     }
 
-    /** Reload videos every second */
-    setInterval(function () { requestAnimationFrame(function () { loadVideo(); }); }, 1000);
-
-    /**
-     * Send message to react native when 
-     * 1. a video page is active
-     * 2. navigation is possible
-     */
-    function navigationChanged () {
-    }
     
     /**
      * Add util to trigger events on pushstate change
+     * Hook into nav changes to let native view know if a video is visible
      */
-    var urlHistory = [window.location.url];
-    var historyIndex = 0;
     (function(history){
         var pushState = history.pushState;
         history.pushState = function(state) {
             if (typeof history.onpushstate == "function") { history.onpushstate({state: state}); }
 
-            //// put this behind a delay so we can fetch the page info after it
-            //// has been loaded
-            
+            /** Uncomment to send message back to react native
+             * This is currently bugged out, will throw an error 30% of the
+             * time when calling postMessage 
             setTimeout(function () { requestAnimationFrame(function () {
-                window.postMessage = patchedPostMessage;
-                var currentUrl = window.location.href;
-                // ignore push states with no URL
-                if (!currentUrl) { return false; }
-
                 var clientState = {
-                    fromPushState: true,
-                    videoIsVisible: false,
-                    backEnabled: false,
-                    forwardEnabled: false
+                    isVideoVisible: false
                 };
 
                 // on history change, send message to native app
-                if (document.getElementById('player').style.visibility === 'visible') {
-                    clientState.videoIsVisible = true;
-                }
-
-                
-                historyIndex++;
-                clientState.historyIndex = historyIndex;
-                urlHistory.push(currentUrl);
-
-                // if the current url is the previous URL, it means the user is
-                // going backwards
-                if (urlHistory[historyIndex - 1] !== undefined) { clientState.backEnabled = true; }
-                if (historyIndex > 0) { clientState.backEnabled = true; }
-
-                clientState.forwardEnabled = false;
-
-                // trim history, we don't need the full array
-                if (urlHistory.length > 5) { urlHistory.shift(); historyIndex--; }
-
-
+                if (document.getElementById('player').style.visibility === 'visible') { clientState.isVideoVisible = true; }
                 log('pushState called ' + JSON.stringify(clientState, null, 4));
-
                 // send message to native app
                 window.postMessage(JSON.stringify(clientState), '*');
             }); }, 100);
+            */
+
+            //// NOTE: Must call postMessage to have nav triggered
+            //// However, this breaks 50% of the tiem
+            // window.postMessage('', '*');
+
 
             return pushState.apply(history, arguments);
         };
@@ -174,35 +128,11 @@ export default function youtubeClientSpeederCode () {
 
     /** Handle back button change */
     function handleHistoryChangeFromNav (direction) {
-       window.postMessage = patchedPostMessage;
-
-        var currentUrl = window.location.href;
-        if (currentUrl === urlHistory[historyIndex]) {
-            log('Same URL found, no effect');
-        }
-
-        var clientState = {
-            videoIsVisible: false,
-            backEnabled: false,
-            forwardEnabled: true,
-            historyIndex: historyIndex
-        };
-
-        if (urlHistory[historyIndex - 1] !== undefined) { clientState.backEnabled = true; }
-        if (direction === -1) { 
-            historyIndex--;
-            urlHistory.pop();
-            clientState.forwardEnabled = true;
-
-        } else if (direction === 1) {
-            historyIndex++;
-            clientState.backEnabled= true;
-        }
-
-        // TODO set up history tracking. When going forward or back, need to
-        // trigger button enabled states AND check if video is visible
-        if (document.getElementById('player').style.visibility === 'visible') { clientState.videoIsVisible = true; }
-        window.postMessage(JSON.stringify(clientState), '*');
+        var clientState = { isVideoVisible: false };
+        if (document.getElementById('player').style.visibility === 'visible') { clientState.isVideoVisible = true; }
+        //// NOTE: Must call postMessage to have nav triggered
+        //// However, this breaks 50% of the tiem
+        // window.postMessage(JSON.stringify(clientState), '*');
     }
 
     /**
@@ -213,18 +143,11 @@ export default function youtubeClientSpeederCode () {
         log('Got message: ' + JSON.stringify(data));
 
         if (data.playbackSpeed) { changePlaybackSpeed(data.playbackSpeed); }
-        if (data.historyForward) { 
-            window.history.go(1); 
-            setTimeout(function () { requestAnimationFrame(function () {
-                handleHistoryChangeFromNav(1); 
-            }); }, 200);
-        }
-        if (data.historyBack) { 
-            window.history.go(-1); 
-            setTimeout(function () { requestAnimationFrame(function () {
-                handleHistoryChangeFromNav(-1); 
-            }); }, 200);
-        }
+
+        /** Uncomment to respond to nav change 
+        if (data.historyForward) { handleHistoryChangeFromNav(1); }
+        if (data.historyBack) { handleHistoryChangeFromNav(-1); }
+        */
 
         // Skip forward / back 30 seconds (whatever amount data.skip is)
         if (data.skip) { skip(data.skip); }
