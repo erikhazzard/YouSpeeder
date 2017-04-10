@@ -29,6 +29,9 @@ const styles = StyleSheet.create({
     youtube: {
         marginTop: 24
     },
+    youtubeLandscape: {
+        marginTop: 0
+    },
 
     footer: {
         height: 50,
@@ -44,9 +47,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
 
-    footerBackWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 0.8},
+    footerBackWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 0.7},
         footerBackWrapperDisabled: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', opacity: 0.1 },
-    footerForwardWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 0.8},
+    footerForwardWrapper: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 0.7},
         footerForwardWrapperDisabled: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', opacity: 0.1 },
 
     footerActionsWrapper: {
@@ -57,6 +60,7 @@ const styles = StyleSheet.create({
     footerAction: Object.assign({}, baseActionLabelStyle, {
         paddingTop: 14, 
         paddingBottom: 6, 
+        opacity: 0.9,
         fontFamily: FONT_FAMILIES.label
     }),
     footerActionDisabled: Object.assign({}, baseActionLabelStyle, {
@@ -66,7 +70,7 @@ const styles = StyleSheet.create({
         opacity: 0.1
     }),
 
-    footerActionPlayback: Object.assign({}, baseActionLabelStyle, {paddingTop: 10, fontSize: 20, width: 88}),
+    footerActionPlayback: Object.assign({}, baseActionLabelStyle, {paddingTop: 10, fontSize: 20, width: 90 }),
 
     footerBack: Object.assign({}, baseActionLabelStyle, {fontSize: 26, paddingTop: 5, paddingBottom: 6}),
     footerForward: Object.assign({}, baseActionLabelStyle, {fontSize: 26, paddingTop: 5, paddingBottom: 6}),

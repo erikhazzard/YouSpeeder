@@ -7,6 +7,7 @@ import {
     StyleSheet,
     TouchableHighlight,
     TouchableNativeFeedback,
+    Dimensions,
     Image,
     Text,
     View,
@@ -28,7 +29,7 @@ import Ripple from 'react-native-material-ripple';
  */
 import styles from '../styles.js';
 
-const PLAYBACK_SPEEDS = [0.5, 1, 1.25, 1.5, 2, 2.5];
+const PLAYBACK_SPEEDS = [0.5, 1, 1.25, 1.5, 2];
 
 export default class ViewYotube extends Component {
     constructor(props) {
@@ -36,14 +37,24 @@ export default class ViewYotube extends Component {
     }
 
     state = {
-        playbackSpeed: PLAYBACK_SPEEDS[2],
-        playbackSpeedIndex: 2,
+        playbackSpeed: PLAYBACK_SPEEDS[1],
+        playbackSpeedIndex: 1,
+        skipAmount: 30,
         url: '',
         status: '',
         backButtonEnabled: false,
         forwardButtonEnabled: false,
         isVideoVisible: false,
+        isWebviewLoaded: false,
+        orientation: Dimensions.get('window').width > Dimensions.get('window').height ? 'landscape' : 'portrait',
         loading: true
+    }
+
+    onLayout = (event) => {
+        let {width, height} = event.nativeEvent.layout;
+        let orientation = width > height ? 'landscape' : 'portrait';
+        this.setState({ orientation });
+        console.log('Layout change : ' + orientation);
     }
 
     // TODO: Figure out red screen issue
@@ -54,7 +65,7 @@ export default class ViewYotube extends Component {
     }
 
     postMessage = (message) => {
-        if (this.webview && this.state.webviewLoaded) { this.webview.postMessage(message, '*'); }
+        if (this.webview && this.state.isWebviewLoaded) { this.webview.postMessage(message, '*'); }
     }
 
     /**
@@ -69,10 +80,15 @@ export default class ViewYotube extends Component {
         // post message to webview immediately
         this.postMessage(JSON.stringify({playbackSpeed: PLAYBACK_SPEEDS[nextPlaybackSpeed]}));
 
+        var skipAmount = this.state.skipAmount;
+        if (PLAYBACK_SPEEDS[nextPlaybackSpeed] < 1) { skipAmount = 15; }
+        else if (PLAYBACK_SPEEDS[nextPlaybackSpeed] >= 1) { skipAmount = 30; }
+
         // update state
         this.setState({
             playbackSpeed: PLAYBACK_SPEEDS[nextPlaybackSpeed],
-            playbackSpeedIndex: nextPlaybackSpeed
+            playbackSpeedIndex: nextPlaybackSpeed,
+            skipAmount: skipAmount
         });
     }
 
@@ -93,10 +109,10 @@ export default class ViewYotube extends Component {
 
     render () {
         return (
-            <View style={styles.container}>
+            <View style={styles.container} onLayout={this.onLayout}>
                 <WebView
                     ref={ (webview) => { return this.webview = webview; } }
-                    style={styles.youtube}
+                    style={this.state.orientation === 'portrait' ? styles.youtube : styles.youtube.youtubeLandscape}
                     automaticallyAdjustContentInsets={true}
                     source={{
                         uri: 'https://www.youtube.com',
@@ -130,6 +146,7 @@ export default class ViewYotube extends Component {
                         this.webview.injectJavaScript(
                             '(' + youtubeClientCode.toString() + ')()'
                         );
+                        this.setState({isWebviewLoaded: true});
                     }}
                 />
 
@@ -146,9 +163,9 @@ export default class ViewYotube extends Component {
                     <View style={styles.footerActionsWrapper}>
                         <Ripple 
                             rippleCentered={true}
-                            onPress={ () => { this.skip(-30); }}>
+                            onPress={ () => { this.skip(-this.state.skipAmount); }}>
                             <Text style={styles.footerAction}>
-                                ↩︎ 30s
+                                ↩︎ {this.state.skipAmount}s
                             </Text>
                         </Ripple>
                         <Ripple 
@@ -162,9 +179,9 @@ export default class ViewYotube extends Component {
                         </Ripple>
                         <Ripple 
                             rippleCentered={true}
-                            style={styles.footerRipple} onPress={() => { this.skip(30); }}>
+                            style={styles.footerRipple} onPress={() => { this.skip(this.state.skipAmount); }}>
                             <Text style={styles.footerAction}>
-                                30s↪︎ 
+                                {this.state.skipAmount}s↪︎ 
                             </Text>
                         </Ripple>
                     </View>

@@ -4,7 +4,7 @@
  */
 export default function youtubeClientSpeederCode () {
     /** Speeder config */
-    window.__SPEEDER = {rate: 2};
+    window.__SPEEDER = {rate: 1};
 
     /**
      * Modify postMessage to avoid bug in react native. See 
