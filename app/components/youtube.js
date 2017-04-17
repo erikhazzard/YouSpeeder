@@ -156,7 +156,8 @@ export default class ViewYotube extends Component {
                             rippleCentered={true}
                             style={styles.footerRipple} onPress={this.historyBack}>
                             <Text style={styles.footerBack}>
-                                ←
+                                {/* ← */}
+                                ⬅︎
                             </Text>
                         </Ripple>
                     </View>
@@ -190,7 +191,8 @@ export default class ViewYotube extends Component {
                             rippleCentered={true}
                             style={styles.footerRipple} onPress={this.historyForward}>
                             <Text style={styles.footerForward}>
-                                →
+                                {/* → */}
+                                ➡︎
                             </Text>
                         </Ripple>
                     </View>
