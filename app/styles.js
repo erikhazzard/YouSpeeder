@@ -10,6 +10,9 @@ const FONT_FAMILIES = {
     labelBold: 'AvenirNext-Heavy'
 };
 
+/**
+ * Set some properties that other styles will mixin
+ */
 const baseActionLabelStyle = {
     color: '#ffffff',
     fontFamily: FONT_FAMILIES.labelBold,
@@ -19,6 +22,11 @@ const baseActionLabelStyle = {
     width: 50
 };
 
+/**
+ * App wide styles
+ *  There are a few styles that are used (such as nav disabled state), but
+ *  can be used once states are hooked up properly.
+ */
 const styles = StyleSheet.create({
     container: {
         flex: 1,

@@ -50,6 +50,10 @@ export default class ViewYotube extends Component {
         loading: true
     }
 
+    /**
+     * When layout is changed, check if it in landscape or portrait mode and
+     * apply state accordingly
+     */
     onLayout = (event) => {
         let {width, height} = event.nativeEvent.layout;
         let orientation = width > height ? 'landscape' : 'portrait';
@@ -57,13 +61,16 @@ export default class ViewYotube extends Component {
         console.log('Layout change : ' + orientation);
     }
 
-    // TODO: Figure out red screen issue
-    // NOTE: Do we need this? Probably, if we want to toggle states for
-    // buttons
+    /**
+     * This does not work as per notes in client code
+     */
     onMessage = (e) => {
         console.log('GOT MESSAGE', e.nativeEvent.data);
     }
 
+    /**
+     * Send message from native app to web view
+     */
     postMessage = (message) => {
         if (this.webview && this.state.isWebviewLoaded) { this.webview.postMessage(message, '*'); }
     }
@@ -73,7 +80,6 @@ export default class ViewYotube extends Component {
      * webview video speed
      */
     cycleThroughPlaybackSpeed = () => {
-
         let nextPlaybackSpeed = this.state.playbackSpeedIndex + 1;
         if (nextPlaybackSpeed >= PLAYBACK_SPEEDS.length) { nextPlaybackSpeed = 0; }
 

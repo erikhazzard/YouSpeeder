@@ -3,7 +3,7 @@
  * 
  */
 export default function youtubeClientSpeederCode () {
-    /** Speeder config */
+    /** Global speeder config */
     window.__SPEEDER = {rate: 1};
 
     /**
@@ -44,9 +44,7 @@ export default function youtubeClientSpeederCode () {
     function log () {
         var $logItem = document.createElement('div');
         var textContent = [];
-        for (var i = 0; i < arguments.length; i++) {
-            textContent.push(JSON.stringify(arguments[i], null, 4));
-        }
+        for (var i = 0; i < arguments.length; i++) { textContent.push(JSON.stringify(arguments[i], null, 4)); }
         $logItem.textContent = textContent.join(' | ');
         $log.appendChild($logItem);
         $log.scrollTop = 99999999999;
@@ -77,6 +75,10 @@ export default function youtubeClientSpeederCode () {
      */
     function changePlaybackSpeed(speed) {
         window.__SPEEDER.rate = +speed; // ensure it's always a number
+        // anytime we change playback speed, ensure we have the video element.
+        // This could be optimized, and is overkill right now - it's not necessary
+        // to select the video every time; but performance cost in this case
+        // is tiny and it solves the problem
         loadVideo();
     }
 
@@ -85,7 +87,6 @@ export default function youtubeClientSpeederCode () {
      * @param {number} amount - amount, in seconds, to skip (can be negative to go backwards)
      */
     function skip (amount) {
-        /** TODO: Could cache all video elements instead of doing it here manually */
         log('Skipping time: ' + amount);
         $video.currentTime += amount;
     }
@@ -117,10 +118,8 @@ export default function youtubeClientSpeederCode () {
             */
 
             //// NOTE: Must call postMessage to have nav triggered
-            //// However, this breaks 50% of the tiem
+            //// However, this breaks 50% of the time
             // window.postMessage('', '*');
-
-
             return pushState.apply(history, arguments);
         };
     })(window.history);
