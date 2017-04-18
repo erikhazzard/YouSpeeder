@@ -129,6 +129,7 @@ export default class ViewYotube extends Component {
                     scalesPageToFit={true}
                     onNavigationStateChange = {(navState) => {
                         console.log('Nav changed', navState);
+                        // NOTE: This doesn't actually work because youtube is a single page app and does not trigger nav state changes.
                         this.setState({
                             backButtonEnabled: navState.canGoBack,
                             forwardButtonEnabled: navState.canGoForward,
